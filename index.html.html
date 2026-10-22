@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zepto Ads Monetization Platform & Placement Simulator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        zepto: {
+                            purple: '#8B2FC9',
+                            darkPurple: '#0D0518',
+                            sidebarBg: '#120822',
+                            cardBg: '#1C1030',
+                            accentPink: '#E60067',
+                            lightPurple: '#281740',
+                            border: '#3D245E',
+                            textMuted: '#A395B8',
+                            green: '#00C853'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #07030C;
+            color: #F3F0F8;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0D0518;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3D245E;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #8B2FC9;
+        }
+        .glass-panel {
+            background: rgba(28, 16, 48, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(139, 47, 201, 0.25);
+        }
+        .glow-pink {
+            box-shadow: 0 0 20px rgba(230, 0, 103, 0.35);
+        }
+        .glow-purple {
+            box-shadow: 0 0 20px rgba(139, 47, 201, 0.35);
+        }
+        /* Mobile Frame Styling */
+        .mobile-frame {
+            width: 360px;
+            height: 700px;
+            border-radius: 36px;
+            border: 10px solid #23123B;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 35px rgba(139, 47, 201, 0.25);
+            overflow: hidden;
+            position: relative;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between antialiased selection:bg-zepto-accentPink selection:text-white">
+
+    <!-- Header Navigation Bar -->
+    <header class="border-b border-zepto-border/60 bg-zepto-darkPurple/95 sticky top-0 z-40 backdrop-blur-md px-4 lg:px-8 py-3">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <!-- Logo & Title -->
+            <div class="flex items-center space-x-3 w-full md:w-auto justify-between md:justify-start">
+                <div class="flex items-center space-x-2">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-zepto-purple to-zepto-accentPink flex items-center justify-center font-extrabold text-xl text-white shadow-lg">
+                        z
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-purple-100 to-zepto-accentPink bg-clip-text text-transparent">zepto</span>
+                            <span class="px-2 py-0.5 text-[10px] font-bold bg-zepto-accentPink/20 text-zepto-accentPink border border-zepto-accentPink/40 rounded-full uppercase tracking-wide">ADS MONETIZATION</span>
+                        </div>
+                        <p class="text-xs text-zepto-textMuted">Merchant Portal & App Placement Engine</p>
+                    </div>
+                </div>
+
+                <!-- Brand Account Switcher -->
+                <div class="flex items-center space-x-2 bg-zepto-lightPurple/60 px-3 py-1.5 rounded-lg border border-zepto-border">
+                    <div class="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-[10px] font-bold text-white">U</div>
+                    <span id="selectedBrandDisplay" class="text-xs font-semibold text-white">Unilever India</span>
+                    <i class="fa-solid fa-angle-down text-xs text-zepto-textMuted ml-1"></i>
+                </div>
+            </div>
+
+            <!-- Header Quick Actions -->
+            <div class="flex items-center space-x-3">
+                <button onclick="openCampaignModal()" class="flex items-center space-x-2 bg-gradient-to-r from-zepto-accentPink to-pink-600 hover:opacity-90 text-white font-semibold text-xs px-4 py-2 rounded-lg shadow-lg glow-pink transition-all">
+                    <i class="fa-solid fa-plus text-xs"></i>
+                    <span>Create Campaign</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace Container (Sidebar + Active View) -->
+    <div class="max-w-7xl w-full mx-auto px-4 lg:px-8 py-6 flex-grow flex flex-col md:flex-row gap-6">
+
+        <!-- Sidebar Navigation -->
+        <aside class="w-full md:w-64 flex-shrink-0 space-y-2">
+            <div class="glass-panel p-3 rounded-2xl space-y-1">
+                <div class="text-[10px] font-bold uppercase tracking-wider text-zepto-textMuted px-3 py-1.5">Navigation</div>
+                
+                <button onclick="switchView('overview')" id="nav-overview" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-zepto-purple to-purple-800 text-white shadow-md transition-all">
+                    <i class="fa-solid fa-chart-pie text-sm"></i>
+                    <span>Overview</span>
+                </button>
+
+                <button onclick="switchView('campaigns')" id="nav-campaigns" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-zepto-textMuted hover:bg-zepto-lightPurple/60 hover:text-white transition-all">
+                    <i class="fa-solid fa-rectangle-ad text-sm"></i>
+                    <span>Campaign Manager</span>
+                </button>
+
+                <button onclick="switchView('analytics')" id="nav-analytics" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-zepto-textMuted hover:bg-zepto-lightPurple/60 hover:text-white transition-all">
+                    <i class="fa-solid fa-chart-line text-sm"></i>
+                    <span>Deep Analytics</span>
+                </button>
+
+                <button onclick="switchView('preview')" id="nav-preview" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-zepto-textMuted hover:bg-zepto-lightPurple/60 hover:text-white transition-all">
+                    <i class="fa-solid fa-mobile-screen-button text-sm"></i>
+                    <span>App Placement Preview</span>
+                </button>
+            </div>
+
+            <!-- Quick Telemetry Stats -->
+            <div class="glass-panel p-4 rounded-2xl text-xs space-y-3">
+                <div class="font-bold text-white flex items-center justify-between">
+                    <span>Ad Engine Status</span>
+                    <span class="flex h-2 w-2 relative">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-zepto-green opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 bg-zepto-green"></span>
+                    </span>
+                </div>
+                <div class="space-y-1.5 text-zepto-textMuted text-[11px]">
+                    <div class="flex justify-between"><span>Active Darkstores:</span><span class="text-white font-mono">185 Units</span></div>
+                    <div class="flex justify-between"><span>Avg. Auction Latency:</span><span class="text-zepto-green font-mono">14 ms</span></div>
+                    <div class="flex justify-between"><span>Current SOV Share:</span><span class="text-zepto-accentPink font-bold">78.4%</span></div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Dynamic Content View Area -->
+        <main class="flex-grow space-y-6">
+
+            <!-- Notification Banner Toast -->
+            <div id="toast" class="hidden fixed bottom-6 right-6 z-50 bg-zepto-cardBg border border-zepto-purple text-white px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-3 transition-all">
+                <div id="toastIcon" class="text-zepto-green text-lg"><i class="fa-solid fa-circle-check"></i></div>
+                <span id="toastMsg" class="text-sm font-medium">Notification message</span>
+            </div>
+
+            <!-- ========================================================================= -->
+            <!-- VIEW 1: OVERVIEW DASHBOARD                                              -->
+            <!-- ========================================================================= -->
+            <section id="view-overview" class="space-y-6">
+                <!-- Header Filters -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <h1 class="text-xl font-bold text-white">Monetization Performance</h1>
+                        <p class="text-xs text-zepto-textMuted">Live campaign ROI and dark store delivery telemetry</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <select id="rangeFilter" onchange="updateDashboardMetrics()" class="bg-zepto-lightPurple text-xs text-white border border-zepto-border rounded-lg px-3 py-2 outline-none focus:border-zepto-purple">
+                            <option value="7">Last 7 Days</option>
+                            <option value="30" selected>Last 30 Days</option>
+                            <option value="90">Last Quarter</option>
+                        </select>
+                        <select id="categoryFilterOverview" onchange="updateDashboardMetrics()" class="bg-zepto-lightPurple text-xs text-white border border-zepto-border rounded-lg px-3 py-2 outline-none focus:border-zepto-purple">
+                            <option value="All">All Categories</option>
+                            <option value="Beverages">Beverages</option>
+                            <option value="Snacks">Snacks & Munchies</option>
+                            <option value="Dairy">Dairy & Eggs</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Metrics Grid -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="glass-panel p-4 rounded-2xl space-y-1">
+                        <div class="flex justify-between text-zepto-textMuted text-xs">
+                            <span>Total Spend</span>
+                            <i class="fa-solid fa-indian-rupee-sign text-zepto-accentPink"></i>
+                        </div>
+                        <div class="text-2xl font-black text-white" id="kpiSpend">₹3,42,800</div>
+                        <div class="text-[10px] text-zepto-green font-medium"><i class="fa-solid fa-arrow-trend-up"></i> +18.4% vs last cycle</div>
+                    </div>
+
+                    <div class="glass-panel p-4 rounded-2xl space-y-1">
+                        <div class="flex justify-between text-zepto-textMuted text-xs">
+                            <span>Impressions</span>
+                            <i class="fa-solid fa-eye text-purple-400"></i>
+                        </div>
+                        <div class="text-2xl font-black text-white" id="kpiImpressions">1.88M</div>
+                        <div class="text-[10px] text-zepto-green font-medium"><i class="fa-solid fa-arrow-trend-up"></i> +24.1% reach</div>
+                    </div>
+
+                    <div class="glass-panel p-4 rounded-2xl space-y-1">
+                        <div class="flex justify-between text-zepto-textMuted text-xs">
+                            <span>Average CTR</span>
+                            <i class="fa-solid fa-arrow-pointer text-blue-400"></i>
+                        </div>
+                        <div class="text-2xl font-black text-white" id="kpiCTR">5.12%</div>
+                        <div class="text-[10px] text-zepto-green font-medium"><i class="fa-solid fa-arrow-trend-up"></i> High engagement</div>
+                    </div>
+
+                    <div class="glass-panel p-4 rounded-2xl space-y-1">
+                        <div class="flex justify-between text-zepto-textMuted text-xs">
+                            <span>Average ROAS</span>
+                            <i class="fa-solid fa-chart-line text-amber-400"></i>
+                        </div>
+                        <div class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-zepto-accentPink to-purple-400" id="kpiROAS">5.8x</div>
+                        <div class="text-[10px] text-zepto-green font-medium"><i class="fa-solid fa-bolt"></i> ₹5.80 return per ₹1</div>
+                    </div>
+                </div>
+
+                <!-- Charts & Quick Bid Engine Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="glass-panel p-5 rounded-2xl lg:col-span-2 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-bold text-white text-sm">Impressions vs. Sales Attribution</h3>
+                            <span class="text-[10px] bg-zepto-purple/20 text-zepto-purple border border-zepto-purple/40 px-2 py-0.5 rounded-full font-semibold">10-Min Delivery Funnel</span>
+                        </div>
+                        <div class="relative h-64 w-full">
+                            <canvas id="overviewChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Instant Bidding Engine -->
+                    <div class="glass-panel p-5 rounded-2xl space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-bold text-white text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-bolt text-zepto-accentPink"></i> Instant Bidding Engine
+                            </h3>
+                        </div>
+                        <form onsubmit="handleQuickBid(event)" class="space-y-3">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-zepto-textMuted mb-1">Target Keyword</label>
+                                <select id="qKeyword" onchange="calcProjections()" class="w-full bg-zepto-lightPurple text-xs text-white border border-zepto-border rounded-lg px-3 py-2 outline-none focus:border-zepto-purple">
+                                    <option value="coffee">Coffee / Cold Brew</option>
+                                    <option value="milk">Fresh Milk & Dairy</option>
+                                    <option value="chips">Potato Chips & Munchies</option>
+                                    <option value="yogurt">Greek Yogurt & Desserts</option>
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-zepto-textMuted mb-1">Daily Budget (₹)</label>
+                                    <input type="number" id="qBudget" value="4000" min="500" step="500" oninput="calcProjections()" class="w-full bg-zepto-lightPurple text-xs text-white border border-zepto-border rounded-lg px-3 py-2 outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-zepto-textMuted mb-1">Max CPC (₹)</label>
+                                    <input type="number" id="qCPC" value="14" min="2" step="1" oninput="calcProjections()" class="w-full bg-zepto-lightPurple text-xs text-white border border-zepto-border rounded-lg px-3 py-2 outline-none">
+                                </div>
+                            </div>
+
+                            <div class="bg-zepto-darkPurple p-3 rounded-xl space-y-1 text-[11px]">
+                                <div class="flex justify-between text-zepto-textMuted"><span>Est. Daily Reach:</span><span id="projImpressions" class="text-white font-bold">28,500</span></div>
+                                <div class="flex justify-between text-zepto-textMuted"><span>Est. Daily Clicks:</span><span id="projClicks" class="text-white font-bold">1,420</span></div>
+                                <div class="flex justify-between text-zepto-textMuted"><span>Share of Voice:</span><span id="projSOV" class="text-zepto-green font-bold">~88% (Rank #1)</span></div>
+                            </div>
+
+                            <button type="submit" class="w-full bg-gradient-to-r from-zepto-purple to-zepto-accentPink text-white font-bold text-xs py-2.5 rounded-lg shadow-md transition-all">
+                                Launch Sponsored Campaign
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================================================= -->
+            <!-- VIEW 2: CAMPAIGN MANAGER                                                -->
+            <!-- ========================================================================= -->
+            <section id="view-campaigns" class="hidden space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <h1 class="text-xl font-bold text-white">Campaign Manager</h1>
+                        <p class="text-xs text-zepto-textMuted">Real-time status toggles, budget pacing, and placement rules</p>
+                    </div>
+                    <button onclick="openCampaignModal()" class="bg-zepto-accentPink text-white text-xs font-bold px-4 py-2 rounded-lg shadow">
+                        + New Campaign
+                    </button>
+                </div>
+
+                <!-- Table Filters -->
+                <div class="glass-panel p-4 rounded-2xl flex flex-col md:flex-row gap-3 items-center justify-between">
+                    <div class="relative w-full md:w-64">
+                        <input type="text" id="campaignSearch" onkeyup="filterCampaignTable()" placeholder="Search campaign name or keyword..." class="w-full bg-zepto-lightPurple text-xs text-white border border-zepto-border rounded-lg pl-8 pr-3 py-2 outline-none focus:border-zepto-purple">
+                        <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-xs text-zepto-textMuted"></i>
+                    </div>
+
+                    <div class="flex items-center space-x-2 w-full md:w-auto">
+                        <select id="filterType" onchange="filterCampaignTable()" class="bg-zepto-lightPurple text-xs text-white border border-zepto-border rounded-lg px-3 py-2 outline-none">
+                            <option value="All">All Placement Types</option>
+                            <option value="Sponsored Search">Sponsored Search</option>
+                            <option value="Cart Upsell">Cart Upsell</option>
+                            <option value="Checkout Banner">Checkout Banner</option>
+                        </select>
+
+                        <select id="filterStatus" onchange="filterCampaignTable()" class="bg-zepto-lightPurple text-xs text-white border border-zepto-border rounded-lg px-3 py-2 outline-none">
+                            <option value="All">All Statuses</option>
+                            <option value="Active">Active Only</option>
+                            <option value="Paused">Paused Only</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Campaign List Table -->
+                <div class="glass-panel rounded-2xl overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs text-zepto-textMuted">
+                            <thead class="bg-zepto-lightPurple/80 text-[11px] font-bold uppercase text-white border-b border-zepto-border">
+                                <tr>
+                                    <th class="p-3.5">Campaign Name</th>
+                                    <th class="p-3.5">Placement Type</th>
+                                    <th class="p-3.5">Target Keyword</th>
+                                    <th class="p-3.5">Spent / Budget</th>
+                                    <th class="p-3.5">CTR</th>
+                                    <th class="p-3.5">ROAS</th>
+                                    <th class="p-3.5">Status</th>
+                                    <th class="p-3.5 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="campaignTableBody" class="divide-y divide-zepto-border/40">
+                                <!-- JS Populated -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================================================= -->
+            <!-- VIEW 3: DEEP ANALYTICS                                                  -->
+            <!-- ========================================================================= -->
+            <section id="view-analytics" class="hidden space-y-6">
+                <div>
+                    <h1 class="text-xl font-bold text-white">Monetization Analytics & Attribution</h1>
+                    <p class="text-xs text-zepto-textMuted">Category Share-of-Voice (SOV) & Conversion Attribution</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="glass-panel p-5 rounded-2xl space-y-3">
+                        <h3 class="font-bold text-white text-sm">Placement Share-of-Voice Distribution</h3>
+                        <div class="relative h-56 w-full flex items-center justify-center">
+                            <canvas id="sovDoughnutChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-5 rounded-2xl space-y-3">
+                        <h3 class="font-bold text-white text-sm">Category Conversion Breakdown</h3>
+                        <div class="space-y-3 text-xs">
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-white">Beverages (Cold Brew & Juices)</span>
+                                    <span class="text-zepto-green font-bold">22.4% Conv. Rate</span>
+                                </div>
+                                <div class="w-full bg-zepto-lightPurple rounded-full h-2">
+                                    <div class="bg-zepto-purple h-2 rounded-full" style="width: 85%"></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-white">Dairy & Breakfast</span>
+                                    <span class="text-zepto-green font-bold">18.1% Conv. Rate</span>
+                                </div>
+                                <div class="w-full bg-zepto-lightPurple rounded-full h-2">
+                                    <div class="bg-zepto-accentPink h-2 rounded-full" style="width: 70%"></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-white">Snacks & Chips</span>
+                                    <span class="text-zepto-green font-bold">15.8% Conv. Rate</span>
+                                </div>
+                                <div class="w-full bg-zepto-lightPurple rounded-full h-2">
+                                    <div class="bg-amber-400 h-2 rounded-full" style="width: 60%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================================================= -->
+            <!-- VIEW 4: APP PLACEMENT PREVIEW (SIMULATOR)                               -->
+            <!-- ========================================================================= -->
+            <section id="view-preview" class="hidden space-y-6">
+                <div class="flex flex-col lg:flex-row items-start justify-between gap-8">
+                    
+                    <!-- Left Column: Controls & Dynamic Configuration -->
+                    <div class="w-full lg:w-1/2 space-y-5">
+                        <div>
+                            <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-zepto-purple/20 border border-zepto-purple/40 text-xs font-semibold text-zepto-accentPink mb-2">
+                                <i class="fa-solid fa-mobile-retro"></i>
+                                <span>Zepto Consumer App Engine</span>
+                            </div>
+                            <h2 class="text-xl font-bold text-white">Live App Placement Preview</h2>
+                            <p class="text-xs text-zepto-textMuted mt-1">
+                                Test how sponsored ad campaigns appear inside the consumer ordering flow in real time.
+                            </p>
+                        </div>
+
+                        <!-- Placement Type Selector Tabs -->
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="setPlacementMode('search')" id="modeSearchBtn" class="p-3 rounded-xl glass-panel text-left border-2 border-zepto-purple hover:bg-zepto-lightPurple transition-all">
+                                <div class="text-[10px] font-bold text-zepto-accentPink uppercase">Format #1</div>
+                                <div class="text-xs font-bold text-white mt-0.5">Sponsored Search</div>
+                            </button>
+
+                            <button onclick="setPlacementMode('cart')" id="modeCartBtn" class="p-3 rounded-xl glass-panel text-left border border-zepto-border hover:bg-zepto-lightPurple transition-all">
+                                <div class="text-[10px] font-bold text-zepto-purple uppercase">Format #2</div>
+                                <div class="text-xs font-bold text-white mt-0.5">Cart Upsell</div>
+                            </button>
+
+                            <button onclick="setPlacementMode('checkout')" id="modeCheckoutBtn" class="p-3 rounded-xl glass-panel text-left border border-zepto-border hover:bg-zepto-lightPurple transition-all">
+                                <div class="text-[10px] font-bold text-amber-400 uppercase">Format #3</div>
+                                <div class="text-xs font-bold text-white mt-0.5">Checkout Banner</div>
+                            </button>
+                        </div>
+
+                        <!-- Active Ad Injection Feedback Card -->
+                        <div class="glass-panel p-4 rounded-xl space-y-2 border-zepto-purple/40">
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="font-bold text-white uppercase tracking-wider">Active Ad Injection</span>
+                                <span id="simActiveBadge" class="font-bold text-zepto-green text-[10px] bg-zepto-green/10 border border-zepto-green/30 px-2 py-0.5 rounded-full">LIVE MATCH</span>
+                            </div>
+                            <p class="text-xs text-zepto-textMuted" id="simActiveDesc">
+                                Bidding priority winner currently rendered inside simulator frame.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Phone Mockup Container -->
+                    <div class="w-full lg:w-1/2 flex justify-center">
+                        
+                        <!-- Phone Frame -->
+                        <div class="mobile-frame bg-[#0a0412] text-white flex flex-col justify-between select-none">
+                            
+                            <!-- Mobile Header -->
+                            <div class="bg-[#150928] px-4 pt-3 pb-2 border-b border-zepto-border/60 space-y-2">
+                                <div class="flex justify-between items-center text-[10px] text-gray-400">
+                                    <span>9:41</span>
+                                    <div class="flex items-center space-x-1.5">
+                                        <i class="fa-solid fa-wifi"></i>
+                                        <i class="fa-solid fa-battery-full"></i>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-2">
+                                        <div class="bg-gradient-to-r from-zepto-accentPink to-zepto-purple px-2 py-0.5 rounded text-[10px] font-black">
+                                            ⚡ 10 MINS
+                                        </div>
+                                        <span class="text-xs font-bold text-white">Home - Jubilee Hills</span>
+                                    </div>
+                                    <div class="w-6 h-6 rounded-full bg-zepto-lightPurple flex items-center justify-center text-[10px]">
+                                        <i class="fa-regular fa-user"></i>
+                                    </div>
+                                </div>
+
+                                <!-- Mobile Search Bar -->
+                                <div class="flex items-center space-x-2">
+                                    <div class="relative flex-grow">
+                                        <input type="text" id="simSearchInput" onkeyup="handleSimSearch()" placeholder='Search "coffee", "milk", "chips"...' class="w-full bg-[#221238] border border-zepto-purple/40 text-xs text-white rounded-xl pl-8 pr-3 py-1.5 outline-none focus:border-zepto-accentPink">
+                                        <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2 text-[11px] text-gray-400"></i>
+                                    </div>
+                                    <button onclick="handleSimSearch()" class="bg-zepto-purple px-2.5 py-1.5 rounded-xl text-xs font-bold">Search</button>
+                                </div>
+
+                                <!-- Mobile Category Pills -->
+                                <div class="flex items-center space-x-1.5 overflow-x-auto pt-1 pb-1 text-[10px] font-bold no-scrollbar">
+                                    <button onclick="setSimCategory('All')" id="pill-All" class="px-2.5 py-1 rounded-full bg-zepto-accentPink text-white flex-shrink-0">All</button>
+                                    <button onclick="setSimCategory('Beverages')" id="pill-Beverages" class="px-2.5 py-1 rounded-full bg-[#221238] text-gray-300 flex-shrink-0">Beverages</button>
+                                    <button onclick="setSimCategory('Snacks')" id="pill-Snacks" class="px-2.5 py-1 rounded-full bg-[#221238] text-gray-300 flex-shrink-0">Snacks</button>
+                                    <button onclick="setSimCategory('Dairy')" id="pill-Dairy" class="px-2.5 py-1 rounded-full bg-[#221238] text-gray-300 flex-shrink-0">Dairy</button>
+                                </div>
+                            </div>
+
+                            <!-- Mobile Body Feed -->
+                            <div id="simAppBody" class="flex-grow overflow-y-auto p-3 space-y-3">
+                                <!-- Dynamic Render -->
+                            </div>
+
+                            <!-- Mobile Footer Sticky Cart Bar -->
+                            <div class="bg-[#150928] border-t border-zepto-border/60 p-3 flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <div class="relative w-8 h-8 rounded-lg bg-zepto-purple/30 flex items-center justify-center text-zepto-accentPink font-bold text-xs">
+                                        <i class="fa-solid fa-bag-shopping"></i>
+                                        <span id="simCartCount" class="absolute -top-1 -right-1 bg-zepto-accentPink text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold">0</span>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs font-bold text-white" id="simCartTotal">₹0</div>
+                                        <div class="text-[9px] text-gray-400">Delivery in 8 mins</div>
+                                    </div>
+                                </div>
+                                <button onclick="toggleCartDrawer()" class="bg-gradient-to-r from-zepto-accentPink to-pink-600 text-white font-bold text-xs px-3 py-1.5 rounded-lg shadow-md">
+                                    View Cart <i class="fa-solid fa-arrow-right text-[10px] ml-1"></i>
+                                </button>
+                            </div>
+
+                            <!-- Cart Drawer Overlay inside Phone -->
+                            <div id="simCartDrawer" class="hidden absolute inset-0 bg-black/80 backdrop-blur-sm z-30 flex flex-col justify-end">
+                                <div class="bg-[#180B2B] p-4 rounded-t-2xl space-y-3 max-h-[80%] overflow-y-auto">
+                                    <div class="flex justify-between items-center border-b border-zepto-border pb-2">
+                                        <span class="text-xs font-bold text-white">Your Cart Summary</span>
+                                        <button onclick="toggleCartDrawer()" class="text-xs text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+                                    </div>
+                                    <div id="simCartItems" class="space-y-2 text-xs">
+                                        <!-- JS Cart List -->
+                                    </div>
+                                    <button onclick="checkoutSimOrder()" class="w-full bg-zepto-accentPink py-2 rounded-xl text-xs font-bold text-white shadow">
+                                        Proceed to Checkout
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Create Campaign Modal -->
+    <div id="campaignModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-lg rounded-2xl p-6 border-zepto-purple shadow-2xl relative">
+            <button onclick="closeCampaignModal()" class="absolute top-4 right-4 text-zepto-textMuted hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <h3 class="text-lg font-bold text-white mb-1">Create Sponsored Campaign</h3>
+            <p class="text-xs text-zepto-textMuted mb-4">Set target search terms, category tags, budget, and CPC bid strategy.</p>
+
+            <form onsubmit="handleModalCreate(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-semibold text-zepto-textMuted mb-1">Campaign Title</label>
+                    <input type="text" id="mTitle" required placeholder="e.g. Sleepy Owl Cold Brew Surge" class="w-full bg-zepto-lightPurple border border-zepto-border rounded-lg px-3 py-2 text-white outline-none focus:border-zepto-purple">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-zepto-textMuted mb-1">Placement Type</label>
+                        <select id="mType" class="w-full bg-zepto-lightPurple border border-zepto-border rounded-lg px-3 py-2 text-white outline-none focus:border-zepto-purple">
+                            <option value="Sponsored Search">Sponsored Search</option>
+                            <option value="Cart Upsell">Cart Upsell</option>
+                            <option value="Checkout Banner">Checkout Banner</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-zepto-textMuted mb-1">Category</label>
+                        <select id="mCategory" class="w-full bg-zepto-lightPurple border border-zepto-border rounded-lg px-3 py-2 text-white outline-none focus:border-zepto-purple">
+                            <option value="Beverages">Beverages</option>
+                            <option value="Dairy">Dairy</option>
+                            <option value="Snacks">Snacks</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-zepto-textMuted mb-1">Target Keyword Trigger</label>
+                        <input type="text" id="mKeyword" required placeholder="e.g. coffee, brew, milk" class="w-full bg-zepto-lightPurple border border-zepto-border rounded-lg px-3 py-2 text-white outline-none focus:border-zepto-purple">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-zepto-textMuted mb-1">Daily Budget (₹)</label>
+                        <input type="number" id="mBudget" value="5000" min="500" step="500" class="w-full bg-zepto-lightPurple border border-zepto-border rounded-lg px-3 py-2 text-white outline-none focus:border-zepto-purple">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-zepto-textMuted mb-1">Max CPC Bid (₹)</label>
+                        <input type="number" id="mCPC" value="15" min="2" class="w-full bg-zepto-lightPurple border border-zepto-border rounded-lg px-3 py-2 text-white outline-none focus:border-zepto-purple">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-zepto-textMuted mb-1">Start Date</label>
+                        <input type="date" id="mDate" class="w-full bg-zepto-lightPurple border border-zepto-border rounded-lg px-3 py-2 text-white outline-none focus:border-zepto-purple">
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-3">
+                    <button type="button" onclick="closeCampaignModal()" class="px-4 py-2 rounded-lg font-semibold text-zepto-textMuted hover:text-white">Cancel</button>
+                    <button type="submit" class="px-5 py-2 rounded-lg font-semibold bg-gradient-to-r from-zepto-purple to-zepto-accentPink text-white shadow-lg">Launch Campaign</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Engine -->
+    <script>
+        // =========================================================================
+        // GLOBAL DATA STATE
+        // =========================================================================
+        
+        let activeView = 'overview';
+        let currentPlacementMode = 'search'; // 'search', 'cart', 'checkout'
+        let currentSimCategory = 'All';
+        
+        // Dynamic Mobile Cart State
+        let simCart = [];
+
+        // Pre-Populated FMCG Ad Campaigns
+        let campaigns = [
+            {
+                id: 201,
+                name: 'Sleepy Owl - Premium Cold Brew Boost',
+                type: 'Sponsored Search',
+                category: 'Beverages',
+                keyword: 'coffee',
+                spent: 18400,
+                budget: 25000,
+                ctr: '5.8%',
+                roas: '6.4x',
+                status: true,
+                product: {
+                    title: 'Sleepy Owl Cold Brew Sweet Hazelnut',
+                    subtitle: '200 ml Can • Chilled Coffee',
+                    price: '₹125',
+                    origPrice: '₹150',
+                    image: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=150&auto=format&fit=crop&q=80',
+                    brand: 'Sleepy Owl Coffee'
+                }
+            },
+            {
+                id: 202,
+                name: 'Amul - High Intent Fresh Milk Spot',
+                type: 'Sponsored Search',
+                category: 'Dairy',
+                keyword: 'milk',
+                spent: 12100,
+                budget: 15000,
+                ctr: '4.9%',
+                roas: '5.2x',
+                status: true,
+                product: {
+                    title: 'Amul Taaza Toned Milk',
+                    subtitle: '1 Litre Tetra Pack',
+                    price: '₹72',
+                    origPrice: '₹78',
+                    image: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=150&auto=format&fit=crop&q=80',
+                    brand: 'Amul Sponsored'
+                }
+            },
+            {
+                id: 203,
+                name: 'Epigamia - Mango Greek Yogurt Cart Cross-Sell',
+                type: 'Cart Upsell',
+                category: 'Dairy',
+                keyword: 'yogurt',
+                spent: 8200,
+                budget: 10000,
+                ctr: '6.1%',
+                roas: '4.8x',
+                status: true,
+                product: {
+                    title: 'Epigamia Alphonso Mango Greek Yogurt',
+                    subtitle: '90g Cup • High Protein',
+                    price: '₹60',
+                    origPrice: '₹70',
+                    image: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?w=150&auto=format&fit=crop&q=80',
+                    brand: 'Epigamia Sponsored'
+                }
+            },
+            {
+                id: 204,
+                name: 'Lay\'s - Maxx Macho Chili Munchies Takeover',
+                type: 'Checkout Banner',
+                category: 'Snacks',
+                keyword: 'chips',
+                spent: 24500,
+                budget: 30000,
+                ctr: '3.8%',
+                roas: '4.2x',
+                status: false,
+                product: {
+                    title: 'Lay\'s Gourmet Vintage Cheese Chips',
+                    subtitle: '80g Pack',
+                    price: '₹50',
+                    origPrice: '₹60',
+                    image: 'https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=150&auto=format&fit=crop&q=80',
+                    brand: 'Lay\'s Sponsored'
+                }
+            }
+        ];
+
+        // Regular Non-Sponsored Products
+        const regularProducts = {
+            Beverages: [
+                { title: 'Bru Gold Instant Coffee', subtitle: '100g Jar', price: '₹290', image: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=150&auto=format&fit=crop&q=80' },
+                { title: 'Tropicana 100% Orange Juice', subtitle: '1 Litre', price: '₹135', image: 'https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=150&auto=format&fit=crop&q=80' }
+            ],
+            Dairy: [
+                { title: 'Mother Dairy Full Cream Milk', subtitle: '500ml Pouch', price: '₹34', image: 'https://images.unsplash.com/photo-1528750997573-59b89d56f4f7?w=150&auto=format&fit=crop&q=80' },
+                { title: 'Country Delight Cow Milk', subtitle: '1 Litre', price: '₹85', image: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=150&auto=format&fit=crop&q=80' }
+            ],
+            Snacks: [
+                { title: 'Kurkure Masala Munch', subtitle: '85g Pack', price: '₹20', image: 'https://images.unsplash.com/photo-1621447504864-d8686e12698c?w=150&auto=format&fit=crop&q=80' },
+                { title: 'Pringles Sour Cream & Onion', subtitle: '107g Can', price: '₹115', image: 'https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=150&auto=format&fit=crop&q=80' }
+            ]
+        };
+
+        let overviewChartInstance = null;
+        let doughnutChartInstance = null;
+
+        // =========================================================================
+        // INITIALIZATION
+        // =========================================================================
+        
+        window.onload = function() {
+            // Set default date picker
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('mDate').value = today;
+
+            renderCampaignTable();
+            initCharts();
+            calcProjections();
+            renderSimApp();
+        };
+
+        // =========================================================================
+        // NAVIGATION TAB SWITCHER
+        // =========================================================================
+
+        function switchView(viewName) {
+            activeView = viewName;
+
+            // Hide all sections
+            ['overview', 'campaigns', 'analytics', 'preview'].forEach(v => {
+                document.getElementById(`view-${v}`).classList.add('hidden');
+                
+                const navBtn = document.getElementById(`nav-${v}`);
+                if (navBtn) {
+                    navBtn.className = 'w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-zepto-textMuted hover:bg-zepto-lightPurple/60 hover:text-white transition-all';
+                }
+            });
+
+            // Show target section & highlight button
+            document.getElementById(`view-${viewName}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`nav-${viewName}`);
+            if (activeBtn) {
+                activeBtn.className = 'w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-zepto-purple to-purple-800 text-white shadow-md transition-all';
+            }
+
+            if (viewName === 'preview') {
+                renderSimApp();
+            }
+        }
+
+        // =========================================================================
+        // CAMPAIGN TABLE & FILTERS
+        // =========================================================================
+
+        function renderCampaignTable() {
+            const tbody = document.getElementById('campaignTableBody');
+            tbody.innerHTML = '';
+
+            campaigns.forEach(c => {
+                const pct = Math.min(100, Math.round((c.spent / c.budget) * 100));
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-zepto-lightPurple/40 transition-all';
+                tr.innerHTML = `
+                    <td class="p-3.5 font-bold text-white">${c.name}</td>
+                    <td class="p-3.5">
+                        <span class="text-[10px] px-2 py-0.5 rounded font-semibold ${c.type === 'Sponsored Search' ? 'bg-purple-900/50 text-purple-300 border border-purple-700' : 'bg-pink-900/50 text-pink-300 border border-pink-700'}">
+                            ${c.type}
+                        </span>
+                    </td>
+                    <td class="p-3.5 font-mono text-zepto-accentPink">"${c.keyword}"</td>
+                    <td class="p-3.5">
+                        <div class="text-[11px] text-white mb-1">₹${c.spent.toLocaleString()} / ₹${c.budget.toLocaleString()}</div>
+                        <div class="w-24 bg-zepto-lightPurple rounded-full h-1.5 overflow-hidden">
+                            <div class="bg-gradient-to-r from-zepto-purple to-zepto-accentPink h-1.5 rounded-full" style="width: ${pct}%"></div>
+                        </div>
+                    </td>
+                    <td class="p-3.5 font-medium text-white">${c.ctr}</td>
+                    <td class="p-3.5 font-bold text-zepto-green">${c.roas}</td>
+                    <td class="p-3.5">
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" ${c.status ? 'checked' : ''} onchange="toggleCampaignStatus(${c.id})" class="sr-only peer">
+                            <div class="w-8 h-4 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-zepto-accentPink"></div>
+                        </label>
+                    </td>
+                    <td class="p-3.5 text-right">
+                        <button onclick="deleteCampaign(${c.id})" class="text-zepto-textMuted hover:text-red-400 p-1">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function toggleCampaignStatus(id) {
+            const item = campaigns.find(c => c.id === id);
+            if (item) {
+                item.status = !item.status;
+                showToast(`Campaign status updated to ${item.status ? 'Active' : 'Paused'}.`);
+                renderSimApp();
+            }
+        }
+
+        function deleteCampaign(id) {
+            campaigns = campaigns.filter(c => c.id !== id);
+            renderCampaignTable();
+            showToast('Campaign deleted.', true);
+            renderSimApp();
+        }
+
+        function filterCampaignTable() {
+            const query = document.getElementById('campaignSearch').value.toLowerCase();
+            const typeFilter = document.getElementById('filterType').value;
+            const statusFilter = document.getElementById('filterStatus').value;
+
+            const tbody = document.getElementById('campaignTableBody');
+            const rows = tbody.getElementsByTagName('tr');
+
+            campaigns.forEach((c, idx) => {
+                if (!rows[idx]) return;
+                
+                const matchesSearch = c.name.toLowerCase().includes(query) || c.keyword.toLowerCase().includes(query);
+                const matchesType = (typeFilter === 'All') || (c.type === typeFilter);
+                const matchesStatus = (statusFilter === 'All') || (statusFilter === 'Active' && c.status) || (statusFilter === 'Paused' && !c.status);
+
+                if (matchesSearch && matchesType && matchesStatus) {
+                    rows[idx].style.display = '';
+                } else {
+                    rows[idx].style.display = 'none';
+                }
+            });
+        }
+
+        function updateDashboardMetrics() {
+            const days = document.getElementById('rangeFilter').value;
+            const cat = document.getElementById('categoryFilterOverview').value;
+
+            // Simple Dynamic Multiplier for Demo Filters
+            const multiplier = days === '7' ? 0.3 : days === '90' ? 2.8 : 1.0;
+            const spend = Math.round(342800 * multiplier);
+            const impressions = (1.88 * multiplier).toFixed(2);
+
+            document.getElementById('kpiSpend').innerText = `₹${spend.toLocaleString()}`;
+            document.getElementById('kpiImpressions').innerText = `${impressions}M`;
+            showToast(`Updated analytics view for ${days} days (${cat}).`);
+        }
+
+        function calcProjections() {
+            const budget = parseFloat(document.getElementById('qBudget').value) || 0;
+            const cpc = parseFloat(document.getElementById('qCPC').value) || 1;
+
+            const estClicks = Math.round(budget / cpc);
+            const estImpressions = Math.round(estClicks * 20.2);
+
+            document.getElementById('projImpressions').innerText = estImpressions.toLocaleString();
+            document.getElementById('projClicks').innerText = estClicks.toLocaleString();
+        }
+
+        function handleQuickBid(e) {
+            e.preventDefault();
+            const kw = document.getElementById('qKeyword').value;
+            const budget = parseInt(document.getElementById('qBudget').value);
+            const cpc = parseInt(document.getElementById('qCPC').value);
+
+            const newCamp = {
+                id: Date.now(),
+                name: `Unilever - Quick Bid ${kw.toUpperCase()}`,
+                type: 'Sponsored Search',
+                category: kw === 'coffee' ? 'Beverages' : kw === 'milk' ? 'Dairy' : 'Snacks',
+                keyword: kw,
+                spent: 0,
+                budget: budget,
+                ctr: '5.1%',
+                roas: '5.5x',
+                status: true,
+                product: {
+                    title: `Sponsored ${kw.toUpperCase()} Premium Choice`,
+                    subtitle: 'Zepto Instant Delivery Special',
+                    price: '₹140',
+                    origPrice: '₹165',
+                    image: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=150&auto=format&fit=crop&q=80',
+                    brand: 'Unilever Sponsored'
+                }
+            };
+
+            campaigns.unshift(newCamp);
+            renderCampaignTable();
+            showToast(`Instant bid for "${kw}" launched!`);
+            renderSimApp();
+        }
+
+        // =========================================================================
+        // CHARTS ENGINE
+        // =========================================================================
+
+        function initCharts() {
+            // 1. Line Chart
+            const ctx1 = document.getElementById('overviewChart').getContext('2d');
+            overviewChartInstance = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: ['W1', 'W2', 'W3', 'W4'],
+                    datasets: [{
+                        label: 'Impressions',
+                        data: [420000, 780000, 1250000, 1880000],
+                        borderColor: '#8B2FC9',
+                        fill: false,
+                        tension: 0.3
+                    }, {
+                        label: 'Attributed Sales (₹)',
+                        data: [85000, 142000, 240000, 342800],
+                        borderColor: '#E60067',
+                        fill: false,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: true, labels: { color: '#A395B8', font: { size: 10 } } } },
+                    scales: {
+                        x: { ticks: { color: '#A395B8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        y: { ticks: { color: '#A395B8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                    }
+                }
+            });
+
+            // 2. SOV Doughnut Chart
+            const ctx2 = document.getElementById('sovDoughnutChart').getContext('2d');
+            doughnutChartInstance = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Sponsored Search', 'Cart Upsell', 'Checkout Banner'],
+                    datasets: [{
+                        data: [55, 30, 15],
+                        backgroundColor: ['#8B2FC9', '#E60067', '#F59E0B']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { color: '#A395B8', font: { size: 10 } } } }
+                }
+            });
+        }
+
+        // =========================================================================
+        // SIMULATOR ENGINE & CONSUMER APP
+        // =========================================================================
+
+        function setPlacementMode(mode) {
+            currentPlacementMode = mode;
+
+            const btnSearch = document.getElementById('modeSearchBtn');
+            const btnCart = document.getElementById('modeCartBtn');
+            const btnCheckout = document.getElementById('modeCheckoutBtn');
+
+            [btnSearch, btnCart, btnCheckout].forEach(b => b.classList.replace('border-zepto-purple', 'border-zepto-border'));
+
+            if (mode === 'search') btnSearch.classList.replace('border-zepto-border', 'border-zepto-purple');
+            if (mode === 'cart') btnCart.classList.replace('border-zepto-border', 'border-zepto-purple');
+            if (mode === 'checkout') btnCheckout.classList.replace('border-zepto-border', 'border-zepto-purple');
+
+            renderSimApp();
+        }
+
+        function setSimCategory(cat) {
+            currentSimCategory = cat;
+
+            ['All', 'Beverages', 'Snacks', 'Dairy'].forEach(c => {
+                const pill = document.getElementById(`pill-${c}`);
+                if (pill) {
+                    if (c === cat) {
+                        pill.className = 'px-2.5 py-1 rounded-full bg-zepto-accentPink text-white flex-shrink-0';
+                    } else {
+                        pill.className = 'px-2.5 py-1 rounded-full bg-[#221238] text-gray-300 flex-shrink-0';
+                    }
+                }
+            });
+
+            renderSimApp();
+        }
+
+        function handleSimSearch() {
+            renderSimApp();
+        }
+
+        function renderSimApp() {
+            const body = document.getElementById('simAppBody');
+            body.innerHTML = '';
+
+            const query = (document.getElementById('simSearchInput') ? document.getElementById('simSearchInput').value : '').toLowerCase().trim();
+
+            // Find Active Sponsored Campaign matching search or category
+            const activeAd = campaigns.find(c => {
+                if (!c.status) return false;
+                const matchType = (currentPlacementMode === 'search' && c.type === 'Sponsored Search') ||
+                                 (currentPlacementMode === 'cart' && c.type === 'Cart Upsell') ||
+                                 (currentPlacementMode === 'checkout' && c.type === 'Checkout Banner');
+                const matchCat = (currentSimCategory === 'All') || (c.category === currentSimCategory);
+                const matchKW = query === '' || c.keyword.toLowerCase().includes(query) || c.name.toLowerCase().includes(query);
+                return matchType && matchCat && matchKW;
+            }) || campaigns.find(c => c.status);
+
+            const activeBadge = document.getElementById('simActiveBadge');
+            const activeDesc = document.getElementById('simActiveDesc');
+
+            if (activeAd) {
+                if (activeBadge) activeBadge.innerText = 'LIVE MATCH';
+                if (activeDesc) activeDesc.innerText = `Rendering "${activeAd.name}" (${activeAd.type})`;
+            } else {
+                if (activeBadge) activeBadge.innerText = 'NO ACTIVE AD';
+                if (activeDesc) activeDesc.innerText = 'No matching active sponsored bid for this filter query.';
+            }
+
+            if (currentPlacementMode === 'search') {
+                body.innerHTML += `<div class="text-[10px] font-bold text-gray-400 uppercase">Search Feed (${currentSimCategory})</div>`;
+
+                // Render Sponsored Top Spot
+                if (activeAd) {
+                    body.innerHTML += `
+                        <div class="bg-[#1D0C33] border border-zepto-purple rounded-xl p-2.5 relative shadow-lg">
+                            <div class="absolute top-2 right-2 bg-zepto-accentPink/20 text-zepto-accentPink border border-zepto-accentPink/40 text-[8px] font-bold px-1.5 py-0.5 rounded">
+                                SPONSORED
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <img src="${activeAd.product.image}" class="w-14 h-14 object-cover rounded-lg">
+                                <div class="flex-grow">
+                                    <div class="text-[9px] text-zepto-accentPink font-bold">${activeAd.product.brand}</div>
+                                    <div class="text-xs font-bold text-white leading-snug">${activeAd.product.title}</div>
+                                    <div class="text-[10px] text-gray-400">${activeAd.product.subtitle}</div>
+                                    <div class="text-xs font-black text-white mt-1">${activeAd.product.price}</div>
+                                </div>
+                                <button onclick="addToCart('${activeAd.product.title}', '${activeAd.product.price}')" class="bg-zepto-accentPink text-white font-bold text-xs px-2.5 py-1.5 rounded-lg">
+                                    ADD
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Render Organic Feed Items
+                const list = (currentSimCategory !== 'All' && regularProducts[currentSimCategory]) 
+                    ? regularProducts[currentSimCategory] 
+                    : [...regularProducts.Beverages, ...regularProducts.Dairy, ...regularProducts.Snacks];
+
+                list.forEach(item => {
+                    body.innerHTML += `
+                        <div class="bg-[#150928] border border-zepto-border/50 rounded-xl p-2.5 flex items-center space-x-3">
+                            <img src="${item.image}" class="w-12 h-12 object-cover rounded-lg">
+                            <div class="flex-grow">
+                                <div class="text-xs font-bold text-white">${item.title}</div>
+                                <div class="text-[10px] text-gray-400">${item.subtitle}</div>
+                                <div class="text-xs font-black text-white mt-1">${item.price}</div>
+                            </div>
+                            <button onclick="addToCart('${item.title}', '${item.price}')" class="border border-zepto-purple text-zepto-purple font-bold text-xs px-2.5 py-1.5 rounded-lg">
+                                ADD
+                            </button>
+                        </div>
+                    `;
+                });
+
+            } else if (currentPlacementMode === 'cart') {
+                body.innerHTML += `
+                    <div class="text-xs font-bold text-white mb-1">Cart Summary Items</div>
+                    <div class="bg-[#150928] p-2.5 rounded-xl text-xs space-y-1.5 text-gray-300">
+                        <div class="flex justify-between"><span>Bru Instant Coffee 100g</span><span>₹290</span></div>
+                        <div class="flex justify-between"><span>Mother Dairy Milk 500ml</span><span>₹34</span></div>
+                    </div>
+
+                    <!-- SPONSORED CART UPSELL -->
+                    <div class="bg-gradient-to-r from-zepto-lightPurple to-[#210D3B] border border-zepto-accentPink/50 p-3 rounded-xl space-y-2">
+                        <div class="flex justify-between items-center text-[10px]">
+                            <span class="font-bold text-white"><i class="fa-solid fa-sparkles text-zepto-accentPink"></i> Sponsored Cross-Sell</span>
+                            <span class="bg-zepto-accentPink/20 text-zepto-accentPink px-1 rounded font-bold">SPONSORED</span>
+                        </div>
+                        <div class="flex items-center space-x-2 bg-[#0A0412] p-2 rounded-lg">
+                            <img src="${activeAd ? activeAd.product.image : 'https://images.unsplash.com/photo-1488477181946-6428a0291777?w=150'}" class="w-10 h-10 object-cover rounded">
+                            <div class="flex-grow">
+                                <div class="text-xs font-bold text-white">${activeAd ? activeAd.product.title : 'Epigamia Greek Yogurt'}</div>
+                                <div class="text-[9px] text-zepto-green">Pairs with your items</div>
+                            </div>
+                            <button onclick="addToCart('${activeAd ? activeAd.product.title : 'Epigamia Yogurt'}', '${activeAd ? activeAd.product.price : '₹60'}')" class="bg-zepto-purple text-white text-xs px-2 py-1 rounded font-bold">
+                                + Add
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else if (currentPlacementMode === 'checkout') {
+                body.innerHTML += `
+                    <!-- CHECKOUT SPONSORED TAKEOVER BANNER -->
+                    <div class="bg-gradient-to-r from-zepto-purple via-pink-600 to-zepto-accentPink p-3 rounded-2xl text-white space-y-1">
+                        <div class="flex justify-between items-center text-[9px] font-bold">
+                            <span class="bg-black/30 px-2 py-0.5 rounded uppercase">TAKEOVER OFFER</span>
+                            <span>SPONSORED BRAND</span>
+                        </div>
+                        <div class="text-xs font-black">${activeAd ? activeAd.name : 'Special Brand Takeover Promo'}</div>
+                        <p class="text-[10px] text-pink-100">Unlock instant ₹50 cashback on checkout completion.</p>
+                        <button onclick="showToast('Promo discount applied!')" class="w-full bg-white text-zepto-purple font-bold text-xs py-1 rounded-lg mt-1">
+                            Claim Discount
+                        </button>
+                    </div>
+
+                    <div class="bg-[#150928] p-3 rounded-xl space-y-2 text-xs text-gray-300">
+                        <div class="font-bold text-white">Payment Details</div>
+                        <div class="flex justify-between"><span>Subtotal</span><span>₹324</span></div>
+                        <div class="flex justify-between text-zepto-green"><span>Delivery Partner Fee</span><span>FREE</span></div>
+                        <div class="border-t border-gray-700 pt-1 flex justify-between font-bold text-white"><span>Total Amount</span><span>₹324</span></div>
+                    </div>
+                `;
+            }
+        }
+
+        // =========================================================================
+        // CART LOGIC
+        // =========================================================================
+
+        function addToCart(title, priceStr) {
+            const price = parseInt(priceStr.replace('₹', '')) || 0;
+            simCart.push({ title, price });
+
+            updateCartUI();
+            showToast(`Added "${title}" to simulator cart!`);
+        }
+
+        function updateCartUI() {
+            const countBadge = document.getElementById('simCartCount');
+            const totalDisplay = document.getElementById('simCartTotal');
+            const itemsContainer = document.getElementById('simCartItems');
+
+            if (countBadge) countBadge.innerText = simCart.length;
+
+            const total = simCart.reduce((sum, i) => sum + i.price, 0);
+            if (totalDisplay) totalDisplay.innerText = `₹${total}`;
+
+            if (itemsContainer) {
+                itemsContainer.innerHTML = '';
+                if (simCart.length === 0) {
+                    itemsContainer.innerHTML = `<div class="text-gray-400 text-center py-2">Your cart is empty.</div>`;
+                } else {
+                    simCart.forEach((item, idx) => {
+                        itemsContainer.innerHTML += `
+                            <div class="flex justify-between items-center bg-[#10051E] p-2 rounded-lg">
+                                <span class="text-white font-medium">${item.title}</span>
+                                <span class="font-bold text-zepto-accentPink">₹${item.price}</span>
+                            </div>
+                        `;
+                    });
+                }
+            }
+        }
+
+        function toggleCartDrawer() {
+            const drawer = document.getElementById('simCartDrawer');
+            if (drawer) drawer.classList.toggle('hidden');
+        }
+
+        function checkoutSimOrder() {
+            simCart = [];
+            updateCartUI();
+            toggleCartDrawer();
+            showToast('Order placed successfully in simulator!');
+        }
+
+        // =========================================================================
+        // MODAL HELPERS
+        // =========================================================================
+
+        function openCampaignModal() {
+            document.getElementById('campaignModal').classList.remove('hidden');
+        }
+
+        function closeCampaignModal() {
+            document.getElementById('campaignModal').classList.add('hidden');
+        }
+
+        function handleModalCreate(e) {
+            e.preventDefault();
+            const title = document.getElementById('mTitle').value;
+            const type = document.getElementById('mType').value;
+            const category = document.getElementById('mCategory').value;
+            const kw = document.getElementById('mKeyword').value;
+            const budget = parseInt(document.getElementById('mBudget').value);
+            const cpc = parseInt(document.getElementById('mCPC').value);
+
+            const newCamp = {
+                id: Date.now(),
+                name: title,
+                type: type,
+                category: category,
+                keyword: kw,
+                spent: 0,
+                budget: budget,
+                ctr: '4.8%',
+                roas: '5.2x',
+                status: true,
+                product: {
+                    title: title,
+                    subtitle: 'Sponsored FMCG Product',
+                    price: '₹180',
+                    origPrice: '₹220',
+                    image: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=150&auto=format&fit=crop&q=80',
+                    brand: 'Unilever Sponsored'
+                }
+            };
+
+            campaigns.unshift(newCamp);
+            renderCampaignTable();
+            closeCampaignModal();
+            showToast(`Campaign "${title}" created and activated!`);
+            renderSimApp();
+        }
+
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMsg.innerText = msg;
+            toastIcon.className = isError ? 'text-red-400 text-lg' : 'text-zepto-green text-lg';
+            toast.classList.remove('hidden');
+
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
